@@ -1,0 +1,96 @@
+Reference doc
+	https://www.hackster.io/randywreed/unlock-phillips-hue-with-ifttt-maker-raspberry-pi-e768bc
+	
+Install Raspbian
+	login pi
+	pass raspbian
+	
+Enable SSH
+	/bin/systemctl enable ssh
+	/bin/rm /etc/SSHFLAG
+	/sbin/shutdown -r now
+	
+Start Mobaxterm
+	ssh on 192.168.1.89
+Installs	
+	sudo apt-get -y update
+	sudo apt-get -y install python3
+	sudo apt-get -y install python3-pip
+	sudo apt-get -y install python3-flask
+	sudo python3 -m pip install RPi.GPIO
+	sudo python3 -m pip install apscheduler
+	sudo apt-get install -y i2c-tools
+	sudo apt-get install -y python-smbus 
+Enable I2C - https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c
+	sudo nano /etc/modules
+		add 
+			i2c-bcm2708 
+			i2c-dev
+	cat /etc/modprobe.d/raspi-blacklist.conf
+		comment i2c and spi
+	sudo adduser pi i2c
+	sudo nano /boot/config.txt 
+		add	
+			dtparam=i2c1=on
+			dtparam=i2c_arm=on
+	
+Forward port 5000 on router to raspberry
+
+Raspberry GPIO description
+	https://www.raspberrypi.org/documentation/usage/gpio/
+	Ports are 3.3V
+Arduino GPIO description
+	https://oscarliang.com/raspberry-pi-and-arduino-connected-serial-gpio/
+	Tx is 5V
+	Rx is compatible with 3.3v input
+	BUT ARDUINO MUST NOT BE CONNECTED TO RASPBERRY WHEN FLASHED
+		Raspberry may be damaged, I lost an SD card to that
+I2C ports
+	https://oscarliang.com/raspberry-pi-arduino-connected-i2c/
+		
+Launch manually to test
+	python3 wakeUp.py
+	
+Put in auto start from boot
+	sudo crontab -e
+	add on the last line:
+		@reboot sudo python3 /home/pi/wakeUp.py &
+	Ctrl-X to save & quit
+	
+Test webinterface
+	http://yourIP:5000/lights?Command=WakeUp
+	
+IFTTT
+	Create account
+	Manual test
+		https://ifttt.com/create/if-button-press-then-make-a-web-request?sid=20
+		If button is pressed on widget, then send the following command
+			yourIP:5000/lights?Command=WakeUp
+			GET
+			text/plain
+			WakeUp
+		Put the widget on your phone, try it, check that you get something on the server
+		
+Sleep as Android
+	Enable IFTTT connection
+		http://sleep.urbandroid.org/documentation/integration/ifttt/
+	I had some bug
+		Do as advised, login on IFTTT from the Sleep app
+		Wait until something is written on top, or try to refresh by going in the IFTTT settings of Maker, and tap edit the connection to Maker
+		Once it appears, delete everything that does not look like the key, like <dd> </dd>
+		A that point it worked, the key was valid
+	On IFTTT website, do a new IFTTT recipe
+		if Maker -> Receive a web request -> Event Name == alarm_alert_start
+		then Maker -> send the command yourIP:5000/lights?Command=WakeUp
+On arduino
+	Televerse the wakeUp.ino
+	
+Connections
+	Raspberry GND to Arduino GND
+	Raspberry 3 to Arduino A4
+	Raspberry 5 to Arduino A5
+	
+TODO
+	Sunrise
+		http://www.instructables.com/id/A-sunrise-and-sunset-lamp-with-LEDs/
+	Protocol Rasbperry-Arduino
